@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SteamPro · Steam Machine Selector</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d1b2a;
+    --navy-mid: #162032;
+    --navy-light: #1e2e42;
+    --brass: #c9922a;
+    --brass-light: #e8b84b;
+    --steam: #8bbcd4;
+    --steam-light: #b8d8ed;
+    --white: #f0f4f8;
+    --muted: #7a9bb5;
+    --success: #4caf82;
+    --danger: #e05a5a;
+    --border: rgba(139,188,212,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse at 20% 50%, rgba(201,146,42,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(139,188,212,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .logo-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .logo-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span { color: var(--brass-light); }
+
+  .header h1 {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .progress-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 36px;
+    align-items: center;
+  }
+
+  .progress-step {
+    flex: 1;
+    height: 3px;
+    background: var(--navy-light);
+    border-radius: 2px;
+    transition: background 0.4s ease;
+  }
+
+  .progress-step.active { background: var(--brass); }
+  .progress-step.done { background: var(--brass-light); }
+
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    margin-bottom: 28px;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+
+  .progress-label.active { color: var(--brass-light); }
+
+  .card {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.35s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-title {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 20px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .fields-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 8px; }
+
+  .field label {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .input-wrap { position: relative; }
+
+  .input-wrap input {
+    width: 100%;
+    background: var(--navy-light);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 44px 12px 14px;
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .input-wrap input:focus {
+    border-color: var(--brass);
+    box-shadow: 0 0 0 3px rgba(201,146,42,0.15);
+  }
+
+  .input-unit {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .vol-display {
+    margin-top: 20px;
+    background: var(--navy-light);
+    border: 1px solid rgba(201,146,42,0.3);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .vol-display .label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .vol-display .value {
+    font-family: 'Space Mono', monospace;
+    font-size: 24px;
+    color: var(--brass-light);
+    font-weight: 700;
+  }
+
+  .vol-display .unit { font-size: 13px; color: var(--muted); margin-left: 4px; }
+
+  .options-grid { display: grid; gap: 10px; }
+  .options-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .options-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .option-btn {
+    background: var(--navy-light);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .option-btn:hover { border-color: rgba(201,146,42,0.4); background: rgba(201,146,42,0.06); }
+  .option-btn.selected { border-color: var(--brass); background: rgba(201,146,42,0.12); }
+  .option-btn .opt-label { font-size: 14px; font-weight: 500; color: var(--white); }
+  .option-btn .opt-adj { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); }
+  .option-btn.selected .opt-adj { color: var(--brass-light); }
+
+  .surface-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    margin-top: 4px;
+  }
+
+  .surface-table thead th {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    padding: 0 10px 6px;
+    text-align: left;
+    font-weight: 400;
+  }
+
+  .surface-table thead th:last-child { text-align: right; }
+
+  .surface-row td {
+    background: var(--navy-light);
+    padding: 12px 14px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+
+  .surface-row td:first-child {
+    border-left: 1px solid var(--border);
+    border-radius: 10px 0 0 10px;
+    width: 130px;
+  }
+
+  .surface-row td:last-child {
+    border-right: 1px solid var(--border);
+    border-radius: 0 10px 10px 0;
+    text-align: right;
+  }
+
+  .surface-row.has-adj td {
+    background: rgba(201,146,42,0.07);
+    border-color: rgba(201,146,42,0.25);
+  }
+
+  .surface-name { display: flex; align-items: center; gap: 10px; }
+
+  .surface-icon {
+    width: 28px;
+    height: 28px;
+    background: rgba(139,188,212,0.1);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .surface-label { font-size: 13px; font-weight: 600; color: var(--white); display: block; }
+  .surface-sublabel { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; }
+
+  .material-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .mpill {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.18s;
+    white-space: nowrap;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .mpill:hover { border-color: var(--steam); color: var(--white); }
+  .mpill.active-tiles   { border-color: rgba(139,188,212,0.6); background: rgba(139,188,212,0.12); color: var(--steam-light); }
+  .mpill.active-stone   { border-color: rgba(232,184,75,0.6);  background: rgba(232,184,75,0.12);  color: var(--brass-light); }
+  .mpill.active-composite { border-color: rgba(76,175,130,0.6); background: rgba(76,175,130,0.12); color: #7ddcb0; }
+  .mpill.active-glass   { border-color: rgba(224,90,90,0.5);   background: rgba(224,90,90,0.1);   color: #f08080; }
+
+  .adj-badge { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .adj-badge.pos { color: var(--danger); }
+  .adj-badge.neg { color: var(--success); }
+  .adj-badge.zero { color: var(--muted); }
+
+  .enclosure-diagram { display: flex; justify-content: center; margin-bottom: 24px; }
+
+  .diagram-svg-wrap {
+    background: var(--navy-light);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 24px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .diagram-svg-wrap p {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .walls-summary {
+    margin-top: 16px;
+    background: var(--navy-light);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .walls-summary .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .walls-summary .value { font-family: 'Space Mono', monospace; font-size: 16px; color: var(--brass-light); }
+
+  .nav-row { display: flex; gap: 12px; margin-top: 8px; }
+
+  .btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 10px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-primary { background: linear-gradient(135deg, var(--brass), var(--brass-light)); color: var(--navy); }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-secondary { background: var(--navy-light); color: var(--muted); border: 1px solid var(--border); }
+  .btn-secondary:hover { color: var(--white); border-color: var(--steam); }
+
+  .result-card {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease;
+  }
+
+  .result-header {
+    background: linear-gradient(135deg, rgba(201,146,42,0.2), rgba(139,188,212,0.1));
+    border-bottom: 1px solid var(--border);
+    padding: 28px 32px;
+    text-align: center;
+  }
+
+  .result-header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--brass);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 8px;
+  }
+
+  .machine-name {
+    font-size: 36px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    color: var(--brass-light);
+    letter-spacing: -1px;
+  }
+
+  .machine-desc { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+  .result-body { padding: 28px 32px; }
+
+  .calc-breakdown { margin-bottom: 24px; }
+
+  .calc-breakdown h3 {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 14px;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-row .br-label { color: var(--muted); }
+  .breakdown-row .br-value { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--white); }
+  .breakdown-row .br-value.positive { color: var(--danger); }
+  .breakdown-row .br-value.negative { color: var(--success); }
+
+  .final-vol-row {
+    background: var(--navy-light);
+    border: 1px solid rgba(201,146,42,0.3);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    margin-bottom: 24px;
+  }
+
+  .final-vol-row .label { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
+  .final-vol-row .value { font-family: 'Space Mono', monospace; font-size: 28px; color: var(--brass-light); font-weight: 700; }
+
+  .machine-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .machine-tile {
+    background: var(--navy-light);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    transition: border-color 0.3s;
+  }
+
+  .machine-tile.recommended {
+    border-color: var(--brass);
+    background: rgba(201,146,42,0.08);
+    position: relative;
+  }
+
+  .machine-tile.recommended::after {
+    content: '✓ RECOMMENDED';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--brass);
+    color: var(--navy);
+    font-size: 9px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    letter-spacing: 1px;
+  }
+
+  .machine-tile .m-name { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+  .machine-tile .m-range { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
+  .machine-tile.recommended .m-name { color: var(--brass-light); }
+
+  .actions-row { display: flex; gap: 12px; }
+
+  .btn-outline {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-outline:hover { color: var(--white); border-color: var(--steam); }
+
+  .step { display: none; }
+  .step.active { display: block; }
+
+  @media print {
+    * {
+      color: #000 !important;
+      background: #fff !important;
+      border-color: #ccc !important;
+      box-shadow: none !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      background: #fff !important;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body::before { display: none; }
+
+    .container {
+      max-width: 100%;
+      padding: 20px;
+    }
+
+    .header h1,
+    .logo-text,
+    .card-title,
+    .field label,
+    .vol-display .label,
+    .vol-display .value,
+    .vol-display .unit,
+    .surface-label,
+    .surface-sublabel,
+    .machine-name,
+    .machine-desc,
+    .result-header .eyebrow,
+    .calc-breakdown h3,
+    .breakdown-row,
+    .br-label,
+    .br-value,
+    .final-vol-row .label,
+    .final-vol-row .value,
+    .m-name,
+    .m-range,
+    .walls-summary .label,
+    .walls-summary .value,
+    .adj-badge,
+    .opt-label,
+    .opt-adj,
+    p, span, div, td, th, h1, h2, h3 {
+      color: #000 !important;
+    }
+
+    .nav-row,
+    .actions-row,
+    .progress-bar,
+    .progress-labels,
+    .material-pills,
+    .options-grid,
+    .btn,
+    .btn-outline,
+    .btn-primary,
+    .btn-secondary,
+    .mpill,
+    .option-btn,
+    .enclosure-diagram {
+      display: none !important;
+    }
+
+    .step { display: none !important; }
+    #stepResult { display: block !important; }
+
+    .result-card,
+    .result-header,
+    .result-body,
+    .calc-breakdown,
+    .final-vol-row,
+    .machine-grid,
+    .machine-tile,
+    .breakdown-row {
+      background: #fff !important;
+      border: 1px solid #ccc !important;
+      border-radius: 0 !important;
+    }
+
+    .result-header {
+      border-bottom: 2px solid #000 !important;
+      padding: 16px;
+    }
+
+    .machine-tile.recommended {
+      border: 2px solid #000 !important;
+    }
+
+    .machine-tile.recommended::after {
+      background: #000 !important;
+      color: #fff !important;
+    }
+
+    .final-vol-row {
+      border: 1px solid #999 !important;
+    }
+
+    .breakdown-row {
+      border-bottom: 1px solid #ddd !important;
+    }
+
+    .machine-grid {
+      border: none !important;
+    }
+
+    .machine-tile {
+      border: 1px solid #999 !important;
+      padding: 10px;
+    }
+
+    svg text { fill: #000 !important; }
+    svg line, svg rect { stroke: #999 !important; }
+  }
+
+  @media (max-width: 560px) {
+    .fields-row { grid-template-columns: 1fr; }
+    .options-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+    .machine-grid { grid-template-columns: 1fr; }
+    .card { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="logo-line">
+      <div class="logo-text">SteamPRO</div>
+    </div>
+    <h1>Steam Machine Selector</h1>
+  </div>
+
+  <div class="progress-bar" id="progressBar">
+    <div class="progress-step active" id="ps1"></div>
+    <div class="progress-step" id="ps2"></div>
+    <div class="progress-step" id="ps3"></div>
+    <div class="progress-step" id="ps4"></div>
+  </div>
+  <div class="progress-labels">
+    <span class="progress-label active" id="pl1">Room Size</span>
+    <span class="progress-label" id="pl2">Height</span>
+    <span class="progress-label" id="pl3">Wall Finish</span>
+    <span class="progress-label" id="pl4">Location</span>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="step active" id="step1">
+    <div class="card">
+      <div class="card-title">01 — Room Dimensions (feet)</div>
+      <div class="fields-row">
+        <div class="field">
+          <label>Length</label>
+          <div class="input-wrap">
+            <input type="number" id="length" placeholder="0" min="0" step="0.1" oninput="updateVol()">
+            <span class="input-unit">ft</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Width</label>
+          <div class="input-wrap">
+            <input type="number" id="width" placeholder="0" min="0" step="0.1" oninput="updateVol()">
+            <span class="input-unit">ft</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Height</label>
+          <div class="input-wrap">
+            <input type="number" id="height" placeholder="0" min="0" step="0.1" oninput="updateVol()">
+            <span class="input-unit">ft</span>
+          </div>
+        </div>
+      </div>
+      <div class="vol-display">
+        <span class="label">Base Volume</span>
+        <div>
+          <span class="value" id="baseVolDisplay">—</span>
+          <span class="unit">cu ft</span>
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-primary" id="btn1" onclick="goStep(2)" disabled>Next: Height Adjustment →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step" id="step2">
+    <div class="card">
+      <div class="card-title">02 — Height Adjustment</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">
+        Standard ceiling height is <strong style="color:var(--white)">7 feet</strong>. Additional volume adjustment applies for taller rooms.
+      </p>
+      <div class="vol-display" style="margin-bottom:16px;">
+        <span class="label">Your Ceiling Height</span>
+        <div>
+          <span class="value" id="htDisplay">—</span>
+          <span class="unit">ft</span>
+        </div>
+      </div>
+      <div class="vol-display">
+        <span class="label">Height Adjustment</span>
+        <div>
+          <span class="value" id="htAdjDisplay" style="color:var(--success)">None</span>
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Next: Wall Finishes →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Wall Finishes — Back, Left, Right only (Ceiling removed) -->
+  <div class="step" id="step3">
+    <div class="card">
+      <div class="card-title">03 — Inner Wall Finishing Material</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">
+        Select the finishing material for each wall surface. Back wall and both side walls are calculated independently.
+      </p>
+
+      <div class="enclosure-diagram">
+        <div class="diagram-svg-wrap">
+          <p>Enclosure Plan View</p>
+          <svg width="180" height="140" viewBox="0 0 180 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="30" y="20" width="120" height="90" rx="2" fill="rgba(30,46,66,0.8)" stroke="rgba(139,188,212,0.3)" stroke-width="1.5"/>
+            <!-- Back wall (top) -->
+            <line x1="30" y1="20" x2="150" y2="20" stroke="rgba(139,188,212,0.4)" stroke-width="3" stroke-linecap="round" id="dg-back"/>
+            <!-- Left wall -->
+            <line x1="30" y1="20" x2="30" y2="110" stroke="rgba(139,188,212,0.4)" stroke-width="3" stroke-linecap="round" id="dg-left"/>
+            <!-- Right wall -->
+            <line x1="150" y1="20" x2="150" y2="110" stroke="rgba(139,188,212,0.4)" stroke-width="3" stroke-linecap="round" id="dg-right"/>
+            <!-- Front wall grayed out / not calculated -->
+            <line x1="30" y1="110" x2="150" y2="110" stroke="rgba(139,188,212,0.15)" stroke-width="3" stroke-linecap="round" stroke-dasharray="4 3"/>
+            <text x="90" y="128" text-anchor="middle" fill="rgba(139,188,212,0.25)" font-size="9" font-family="Space Mono, monospace">FRONT</text>
+            <text x="90" y="13" text-anchor="middle" fill="rgba(139,188,212,0.6)" font-size="9" font-family="Space Mono, monospace">BACK</text>
+            <text x="14" y="68" text-anchor="middle" fill="rgba(139,188,212,0.6)" font-size="9" font-family="Space Mono, monospace" transform="rotate(-90,14,68)">LEFT</text>
+            <text x="168" y="68" text-anchor="middle" fill="rgba(139,188,212,0.6)" font-size="9" font-family="Space Mono, monospace" transform="rotate(90,168,68)">RIGHT</text>
+            <!-- Ceiling area shown as not calculated -->
+            <rect x="60" y="45" width="60" height="40" rx="3" fill="rgba(139,188,212,0.03)" stroke="rgba(139,188,212,0.1)" stroke-width="1" stroke-dasharray="3 2"/>
+            <text x="90" y="62" text-anchor="middle" fill="rgba(139,188,212,0.2)" font-size="8" font-family="Space Mono, monospace">CEILING</text>
+            <text x="90" y="74" text-anchor="middle" fill="rgba(139,188,212,0.2)" font-size="7" font-family="Space Mono, monospace">not calculated</text>
+          </svg>
+        </div>
+      </div>
+
+      <table class="surface-table" id="surfaceTable">
+        <thead>
+          <tr>
+            <th>Surface</th>
+            <th>Material</th>
+            <th>Adjustment</th>
+          </tr>
+        </thead>
+        <tbody id="surfaceRows"></tbody>
+      </table>
+
+      <div class="walls-summary">
+        <span class="label">Total Wall Adjustment</span>
+        <span class="value" id="wallAdjSummary">0%</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Next: Location →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Location -->
+  <div class="step" id="step4">
+    <div class="card">
+      <div class="card-title">04 — Geolocation of Site</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">
+        Climate zone affects steam load requirements.
+      </p>
+      <div class="options-grid" id="locationOptions"></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goStep(3)">← Back</button>
+      <button class="btn btn-primary" id="calcBtn" onclick="showResult()" disabled>Calculate & Select Machine →</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="step" id="stepResult">
+    <div class="result-card">
+      <div class="result-header">
+        <div class="eyebrow">Recommended Model</div>
+        <div class="machine-name" id="recMachineName">—</div>
+        <div class="machine-desc" id="recMachineDesc">—</div>
+      </div>
+      <div class="result-body">
+        <div class="calc-breakdown">
+          <h3>Calculation Breakdown</h3>
+          <div class="breakdown-row">
+            <span class="br-label">Base Volume (L × W × H)</span>
+            <span class="br-value" id="rb-base">—</span>
+          </div>
+          <div class="breakdown-row" id="rb-htRow">
+            <span class="br-label">Height Adjustment</span>
+            <span class="br-value" id="rb-ht">—</span>
+          </div>
+          <div id="rb-wallRows"></div>
+          <div class="breakdown-row" id="rb-locRow">
+            <span class="br-label">Location Adjustment</span>
+            <span class="br-value" id="rb-loc">—</span>
+          </div>
+        </div>
+
+        <div class="final-vol-row">
+          <span class="label">Adjusted Volume</span>
+          <div>
+            <span class="value" id="adjVolFinal">—</span>
+            <span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--muted);margin-left:6px;">cu ft</span>
+          </div>
+        </div>
+
+        <div class="machine-grid" id="machineGrid"></div>
+
+        <div class="actions-row">
+          <button class="btn-outline" onclick="resetCalc()">↺ Start Over</button>
+          <button class="btn-outline" onclick="printResult()">⎙ Print / Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ——— Data ———
+  const MATERIALS_ALL = [
+    { id: 'tiles',     label: 'Tiles',      adj: 0,   cls: 'active-tiles' },
+    { id: 'stone',     label: 'Stone',      adj: 10,  cls: 'active-stone' },
+    { id: 'composite', label: 'Composite',  adj: -5,  cls: 'active-composite' },
+    { id: 'glass',     label: 'Glass',      adj: -5,  cls: 'active-glass' },
+  ];
+
+  // Only Back, Left, Right — Ceiling removed
+  const SURFACES = [
+    { id: 'back',  label: 'Back Wall',  sub: 'Opposite entrance', icon: '⬛' },
+    { id: 'left',  label: 'Left Side',  sub: 'Left wall',         icon: '⬛' },
+    { id: 'right', label: 'Right Side', sub: 'Right wall',        icon: '⬛' },
+  ];
+
+  const LOCATIONS = [
+    { id: 'delhi',     label: 'Delhi / NCR',              adj: 0,   adjLabel: 'No adjustment' },
+    { id: 'above',     label: 'Chandigarh / Dehradun',    adj: 10,  adjLabel: '+10%' },
+    { id: 'mountains', label: 'Deep in Mountains',        adj: 30,  adjLabel: '+30%' },
+    { id: 'mid',       label: 'Below Delhi, above Bangalore (e.g. MP, Hyderabad)', adj: -10, adjLabel: '−10%' },
+    { id: 'south',     label: 'Bangalore & Below',        adj: -20, adjLabel: '−20%' },
+  ];
+
+  const MACHINES = [
+    { name: 'SP-300',  minVol: 0,    maxVol: 300,      desc: 'Compact residential' },
+    { name: 'SP-500',  minVol: 300,  maxVol: 500,      desc: 'Standard residential / small spa' },
+    { name: 'SP-750',  minVol: 500,  maxVol: 750,      desc: 'Mid-range spa / club' },
+    { name: 'SP-1000', minVol: 750,  maxVol: 1000,     desc: 'Large spa / wellness centre' },
+    { name: 'SP-1500', minVol: 1000, maxVol: 1500,     desc: 'Commercial grade' },
+    { name: 'SP-2000', minVol: 1500, maxVol: Infinity,  desc: 'Heavy commercial / resort' },
+  ];
+
+  // ——— State ———
+  let currentStep = 1;
+  let surfaceMat = { back: 'tiles', left: 'tiles', right: 'tiles' };
+  let selectedLocation = null;
+
+  function adjLabel(adj) {
+    if (adj === 0) return '<span class="adj-badge zero">No adj.</span>';
+    if (adj > 0)   return `<span class="adj-badge pos">+${adj}%</span>`;
+    return `<span class="adj-badge neg">${adj}%</span>`;
+  }
+
+  function renderSurfaces() {
+    const tbody = document.getElementById('surfaceRows');
+    tbody.innerHTML = SURFACES.map(s => {
+      const chosen = MATERIALS_ALL.find(m => m.id === surfaceMat[s.id]) || MATERIALS_ALL[0];
+      return `
+        <tr class="surface-row ${chosen.adj !== 0 ? 'has-adj' : ''}" id="sr-${s.id}">
+          <td>
+            <div class="surface-name">
+              <div class="surface-icon" style="font-size:10px;color:var(--muted)">${s.icon}</div>
+              <div>
+                <span class="surface-label">${s.label}</span>
+                <span class="surface-sublabel">${s.sub}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="material-pills">
+              ${MATERIALS_ALL.map(m => `
+                <button class="mpill ${surfaceMat[s.id] === m.id ? m.cls : ''}" onclick="setSurface('${s.id}','${m.id}')">${m.label}</button>
+              `).join('')}
+            </div>
+          </td>
+          <td>${adjLabel(chosen.adj)}</td>
+        </tr>
+      `;
+    }).join('');
+    updateWallSummary();
+    updateDiagram();
+  }
+
+  function setSurface(surfaceId, matId) {
+    surfaceMat[surfaceId] = matId;
+    renderSurfaces();
+  }
+
+  function updateWallSummary() {
+    const total = SURFACES.reduce((sum, s) => {
+      const m = MATERIALS_ALL.find(m => m.id === surfaceMat[s.id]) || MATERIALS_ALL[0];
+      return sum + m.adj;
+    }, 0);
+    const el = document.getElementById('wallAdjSummary');
+    el.textContent = (total >= 0 ? '+' : '') + total + '%';
+    el.style.color = total > 0 ? 'var(--danger)' : total < 0 ? 'var(--success)' : 'var(--brass-light)';
+  }
+
+  const DIAGRAM_IDS = { back: 'dg-back', left: 'dg-left', right: 'dg-right' };
+  const MAT_COLORS = { tiles: 'rgba(139,188,212,0.5)', stone: '#e8b84b', composite: '#7ddcb0', glass: '#f08080' };
+
+  function updateDiagram() {
+    ['back','left','right'].forEach(s => {
+      const el = document.getElementById(DIAGRAM_IDS[s]);
+      if (el) el.setAttribute('stroke', MAT_COLORS[surfaceMat[s]] || 'rgba(139,188,212,0.4)');
+    });
+  }
+
+  function renderLocations() {
+    const container = document.getElementById('locationOptions');
+    container.innerHTML = LOCATIONS.map(l => `
+      <div class="option-btn ${selectedLocation === l.id ? 'selected' : ''}" onclick="selectLocation('${l.id}')">
+        <span class="opt-label">${l.label}</span>
+        <span class="opt-adj">${l.adjLabel}</span>
+      </div>
+    `).join('');
+  }
+
+  function selectLocation(id) {
+    selectedLocation = id;
+    renderLocations();
+    document.getElementById('calcBtn').disabled = false;
+  }
+
+  function getBaseVol() {
+    const l = parseFloat(document.getElementById('length').value) || 0;
+    const w = parseFloat(document.getElementById('width').value) || 0;
+    const h = parseFloat(document.getElementById('height').value) || 0;
+    return l * w * h;
+  }
+
+  function updateVol() {
+    const base = getBaseVol();
+    document.getElementById('baseVolDisplay').textContent = base > 0 ? base.toFixed(1) : '—';
+    document.getElementById('btn1').disabled = base <= 0;
+  }
+
+  function goStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step' + n).classList.add('active');
+    currentStep = n;
+    updateProgress(n);
+    if (n === 2) renderStep2();
+    if (n === 3) renderSurfaces();
+    if (n === 4) renderLocations();
+  }
+
+  function updateProgress(n) {
+    for (let i = 1; i <= 4; i++) {
+      const s = document.getElementById('ps' + i);
+      const l = document.getElementById('pl' + i);
+      s.className = 'progress-step' + (i < n ? ' done' : i === n ? ' active' : '');
+      l.className = 'progress-label' + (i === n ? ' active' : '');
+    }
+  }
+
+  function renderStep2() {
+    const h = parseFloat(document.getElementById('height').value) || 0;
+    document.getElementById('htDisplay').textContent = h.toFixed(1);
+    if (h <= 7) {
+      document.getElementById('htAdjDisplay').textContent = 'None (≤ 7 ft standard)';
+      document.getElementById('htAdjDisplay').style.color = 'var(--success)';
+    } else {
+      const extra = h - 7;
+      const pct = (extra * 10).toFixed(1);
+      document.getElementById('htAdjDisplay').textContent = `+${pct}% (${extra.toFixed(1)} ft × 10%)`;
+      document.getElementById('htAdjDisplay').style.color = 'var(--danger)';
+    }
+  }
+
+  function showResult() {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('stepResult').classList.add('active');
+
+    const base = getBaseVol();
+    const h = parseFloat(document.getElementById('height').value) || 0;
+
+    let htAdj = 0;
+    if (h > 7) htAdj = (h - 7) * 10;
+
+    let wallAdjTotal = 0;
+    const wallRows = [];
+    SURFACES.forEach(s => {
+      const mat = MATERIALS_ALL.find(m => m.id === surfaceMat[s.id]) || MATERIALS_ALL[0];
+      if (mat.adj !== 0) {
+        wallAdjTotal += mat.adj;
+        wallRows.push({ label: `${s.label}: ${mat.label} (${mat.adj > 0 ? '+' : ''}${mat.adj}%)`, pct: mat.adj });
+      }
+    });
+
+    const loc = LOCATIONS.find(l => l.id === selectedLocation);
+    const locAdj = loc ? loc.adj : 0;
+
+    const totalPct = htAdj + wallAdjTotal + locAdj;
+    const adjVol = base * (1 + totalPct / 100);
+
+    const machine = MACHINES.find(m => adjVol >= m.minVol && adjVol < m.maxVol) || MACHINES[MACHINES.length - 1];
+
+    document.getElementById('recMachineName').textContent = machine.name;
+    document.getElementById('recMachineDesc').textContent = machine.desc;
+    document.getElementById('rb-base').textContent = `${base.toFixed(1)} cu ft`;
+
+    const htEl = document.getElementById('rb-ht');
+    if (htAdj > 0) {
+      htEl.textContent = `+${htAdj.toFixed(1)}% → +${(base * htAdj / 100).toFixed(1)} cu ft`;
+      htEl.className = 'br-value positive';
+      document.getElementById('rb-htRow').style.display = '';
+    } else {
+      htEl.textContent = 'None';
+      htEl.className = 'br-value';
+    }
+
+    const wallRowsEl = document.getElementById('rb-wallRows');
+    if (wallRows.length > 0) {
+      wallRowsEl.innerHTML = wallRows.map(r => `
+        <div class="breakdown-row">
+          <span class="br-label">${r.label}</span>
+          <span class="br-value ${r.pct > 0 ? 'positive' : 'negative'}">${r.pct > 0 ? '+' : ''}${r.pct}% → ${r.pct > 0 ? '+' : ''}${(base * r.pct / 100).toFixed(1)} cu ft</span>
+        </div>
+      `).join('');
+    } else {
+      wallRowsEl.innerHTML = `<div class="breakdown-row"><span class="br-label">All Walls</span><span class="br-value">Tiles — No adjustment</span></div>`;
+    }
+
+    const locEl = document.getElementById('rb-loc');
+    locEl.textContent = `${locAdj > 0 ? '+' : ''}${locAdj}% (${loc ? loc.label : '—'})`;
+    locEl.className = 'br-value' + (locAdj > 0 ? ' positive' : locAdj < 0 ? ' negative' : '');
+
+    document.getElementById('adjVolFinal').textContent = adjVol.toFixed(1);
+
+    const recIdx = MACHINES.indexOf(machine);
+    let showMachines = MACHINES.slice(Math.max(0, recIdx - 1), recIdx + 2);
+    if (showMachines.length < 3) showMachines = MACHINES.slice(0, 3);
+
+    document.getElementById('machineGrid').innerHTML = showMachines.map(m => `
+      <div class="machine-tile ${m.name === machine.name ? 'recommended' : ''}">
+        <div class="m-name">${m.name}</div>
+        <div class="m-range">${m.minVol}–${m.maxVol === Infinity ? '2000+' : m.maxVol} cu ft</div>
+      </div>
+    `).join('');
+  }
+
+  function resetCalc() {
+    surfaceMat = { back: 'tiles', left: 'tiles', right: 'tiles' };
+    selectedLocation = null;
+    document.getElementById('length').value = '';
+    document.getElementById('width').value = '';
+    document.getElementById('height').value = '';
+    document.getElementById('baseVolDisplay').textContent = '—';
+    document.getElementById('btn1').disabled = true;
+    goStep(1);
+  }
+
+  function printResult() { window.print(); }
+
+  // Init
+  renderSurfaces();
+  renderLocations();
+</script>
+</body>
+</html>
